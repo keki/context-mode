@@ -349,15 +349,21 @@ export class ClaudeCodeAdapter implements HookAdapter {
     return results;
   }
 
-  /** Read plugin hooks from hooks/hooks.json */
+  /** Read plugin hooks from hooks/hooks.json or .claude-plugin/hooks/hooks.json */
   private readPluginHooks(
     pluginRoot: string,
   ): Record<string, unknown[]> | undefined {
-    try {
-      const raw = readFileSync(join(pluginRoot, "hooks", "hooks.json"), "utf-8");
-      const parsed = JSON.parse(raw) as { hooks?: Record<string, unknown[]> };
-      if (parsed.hooks) return parsed.hooks;
-    } catch { /* not available */ }
+    const candidates = [
+      join(pluginRoot, "hooks", "hooks.json"),
+      join(pluginRoot, ".claude-plugin", "hooks", "hooks.json"),
+    ];
+    for (const candidate of candidates) {
+      try {
+        const raw = readFileSync(candidate, "utf-8");
+        const parsed = JSON.parse(raw) as { hooks?: Record<string, unknown[]> };
+        if (parsed.hooks) return parsed.hooks;
+      } catch { /* not available */ }
+    }
     return undefined;
   }
 
