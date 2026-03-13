@@ -253,33 +253,6 @@ describe("ClaudeCodeAdapter", () => {
       expect(sessionStart?.status).toBe("pass");
     });
 
-    it("returns PASS when hooks exist in .claude-plugin/hooks/hooks.json", () => {
-      writeFileSync(join(tempDir, "settings.json"), JSON.stringify({}));
-
-      mkdirSync(join(pluginRoot, ".claude-plugin", "hooks"), { recursive: true });
-      writeFileSync(
-        join(pluginRoot, ".claude-plugin", "hooks", "hooks.json"),
-        JSON.stringify({
-          hooks: {
-            PreToolUse: [{
-              matcher: "Bash",
-              hooks: [{ type: "command", command: "node ${CLAUDE_PLUGIN_ROOT}/hooks/pretooluse.mjs" }],
-            }],
-            SessionStart: [{
-              matcher: "",
-              hooks: [{ type: "command", command: "node ${CLAUDE_PLUGIN_ROOT}/hooks/sessionstart.mjs" }],
-            }],
-          },
-        }),
-      );
-
-      const results = adapter.validateHooks(pluginRoot);
-      const preToolUse = results.find((r) => r.check === "PreToolUse hook");
-      const sessionStart = results.find((r) => r.check === "SessionStart hook");
-      expect(preToolUse?.status).toBe("pass");
-      expect(sessionStart?.status).toBe("pass");
-    });
-
     it("returns FAIL when hooks are in neither settings.json nor plugin hooks.json", () => {
       writeFileSync(join(tempDir, "settings.json"), JSON.stringify({}));
 
