@@ -128,32 +128,20 @@ describe("Bash: Redirected Commands", () => {
 });
 
 describe("Bash: Allowed Commands", () => {
-  test("Bash + git status: additionalContext with BASH_GUIDANCE", () => {
+  test("Bash + git status: passthrough (ROUTING_BLOCK at SessionStart covers guidance)", () => {
     const result = runHook({
       tool_name: "Bash",
       tool_input: { command: "git status" },
     });
-    assert.equal(result.exitCode, 0);
-    const parsed = JSON.parse(result.stdout);
-    assert.ok(parsed.hookSpecificOutput.additionalContext, "Expected additionalContext for Bash");
-    assert.ok(
-      parsed.hookSpecificOutput.additionalContext.includes("<context_guidance>"),
-      "Expected <context_guidance> in Bash additionalContext",
-    );
+    assertPassthrough(result);
   });
 
-  test("Bash + mkdir /tmp/test: additionalContext with BASH_GUIDANCE", () => {
+  test("Bash + mkdir /tmp/test: passthrough (ROUTING_BLOCK at SessionStart covers guidance)", () => {
     const result = runHook({
       tool_name: "Bash",
       tool_input: { command: "mkdir /tmp/test" },
     });
-    assert.equal(result.exitCode, 0);
-    const parsed = JSON.parse(result.stdout);
-    assert.ok(parsed.hookSpecificOutput.additionalContext, "Expected additionalContext for Bash");
-    assert.ok(
-      parsed.hookSpecificOutput.additionalContext.includes("<context_guidance>"),
-      "Expected <context_guidance> in Bash additionalContext",
-    );
+    assertPassthrough(result);
   });
 });
 
@@ -263,40 +251,22 @@ describe("Task", () => {
 });
 
 describe("Read", () => {
-  test("Read + file_path: hookSpecificOutput with additionalContext nudge", () => {
+  test("Read + file_path: passthrough (ROUTING_BLOCK at SessionStart covers guidance)", () => {
     const result = runHook({
       tool_name: "Read",
       tool_input: { file_path: "/some/path/to/file.ts" },
     });
-    assertHookSpecificOutput(result, "additionalContext");
-    const parsed = JSON.parse(result.stdout);
-    assert.ok(
-      parsed.hookSpecificOutput.additionalContext.includes("context-mode"),
-      "Expected nudge to mention context-mode",
-    );
-    assert.ok(
-      parsed.hookSpecificOutput.additionalContext.includes("<context_guidance>"),
-      "Expected <context_guidance> XML wrapper in Read nudge",
-    );
+    assertPassthrough(result);
   });
 });
 
 describe("Grep", () => {
-  test("Grep + pattern: hookSpecificOutput with additionalContext nudge", () => {
+  test("Grep + pattern: passthrough (ROUTING_BLOCK at SessionStart covers guidance)", () => {
     const result = runHook({
       tool_name: "Grep",
       tool_input: { pattern: "TODO", path: "/src" },
     });
-    assertHookSpecificOutput(result, "additionalContext");
-    const parsed = JSON.parse(result.stdout);
-    assert.ok(
-      parsed.hookSpecificOutput.additionalContext.includes("context-mode"),
-      "Expected nudge to mention context-mode",
-    );
-    assert.ok(
-      parsed.hookSpecificOutput.additionalContext.includes("<context_guidance>"),
-      "Expected <context_guidance> XML wrapper in Grep nudge",
-    );
+    assertPassthrough(result);
   });
 });
 
@@ -369,20 +339,14 @@ describe("Security Policy Enforcement", () => {
     assert.ok(parsed.hookSpecificOutput.permissionDecisionReason.includes("deny pattern"));
   });
 
-  test("Security: Bash + git allowed, falls through to Stage 2", () => {
+  test("Security: Bash + git allowed, falls through to Stage 2 (passthrough)", () => {
     const result = runHook(
       { tool_name: "Bash", tool_input: { command: "git status" } },
       secEnv,
     );
     // git is in allow list → falls through to Stage 2 routing
-    // Stage 2: git is not curl/wget/fetch → additionalContext with BASH_GUIDANCE
-    assert.equal(result.exitCode, 0);
-    const parsed = JSON.parse(result.stdout);
-    assert.ok(parsed.hookSpecificOutput.additionalContext, "Allowed Bash command should get additionalContext");
-    assert.ok(
-      parsed.hookSpecificOutput.additionalContext.includes("<context_guidance>"),
-      "Expected <context_guidance> in Bash additionalContext",
-    );
+    // Stage 2: git is not curl/wget/fetch → context action → passthrough on Claude Code
+    assertPassthrough(result);
   });
 
   test("Security: MCP execute + shell + sudo denied", () => {
@@ -506,22 +470,14 @@ describe("Plugin Tool Name Format in ROUTING_BLOCK", () => {
     assert.ok(!prompt.includes(SHORT_PREFIX + "ctx_batch_execute"), "Must not contain short-form ctx_batch_execute");
   });
 
-  test("Read nudge uses plugin-format execute_file tool name", () => {
+  test("Read: passthrough on Claude Code (no additionalContext to check plugin-format)", () => {
     const result = runHook({ tool_name: "Read", tool_input: { file_path: "/some/file.ts" } });
-    assert.equal(result.exitCode, 0);
-    const parsed = JSON.parse(result.stdout);
-    const ctx = parsed.hookSpecificOutput.additionalContext;
-    assert.ok(ctx.includes(PLUGIN_PREFIX + "ctx_execute_file"), "Expected plugin-format ctx_execute_file in Read nudge");
-    assert.ok(!ctx.includes(SHORT_PREFIX + "ctx_execute_file"), "Read nudge must not contain short-form ctx_execute_file");
+    assertPassthrough(result);
   });
 
-  test("Grep nudge uses plugin-format execute tool name", () => {
+  test("Grep: passthrough on Claude Code (no additionalContext to check plugin-format)", () => {
     const result = runHook({ tool_name: "Grep", tool_input: { pattern: "TODO" } });
-    assert.equal(result.exitCode, 0);
-    const parsed = JSON.parse(result.stdout);
-    const ctx = parsed.hookSpecificOutput.additionalContext;
-    assert.ok(ctx.includes(PLUGIN_PREFIX + "ctx_execute"), "Expected plugin-format ctx_execute in Grep nudge");
-    assert.ok(!ctx.includes(SHORT_PREFIX + "ctx_execute"), "Grep nudge must not contain short-form ctx_execute");
+    assertPassthrough(result);
   });
 
   test("WebFetch deny reason uses plugin-format fetch_and_index tool name", () => {

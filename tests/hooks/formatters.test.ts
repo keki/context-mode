@@ -77,13 +77,9 @@ describe("formatDecision", () => {
       expect(output.updatedInput).toEqual(modifyDecision.updatedInput);
     });
 
-    it("formats context with hookSpecificOutput.additionalContext", () => {
-      const result = claudeCodeFormat(contextDecision) as Record<string, unknown>;
-      expect(result).not.toBeNull();
-
-      const output = result.hookSpecificOutput as Record<string, unknown>;
-      expect(output.hookEventName).toBe("PreToolUse");
-      expect(output.additionalContext).toBe(contextDecision.additionalContext);
+    it("returns null for context (ROUTING_BLOCK at SessionStart covers guidance)", () => {
+      const result = claudeCodeFormat(contextDecision);
+      expect(result).toBeNull();
     });
 
     it("returns null for null decision", () => {

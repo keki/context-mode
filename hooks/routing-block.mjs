@@ -20,9 +20,10 @@ export const ROUTING_BLOCK = `
   </tool_selection_hierarchy>
 
   <forbidden_actions>
-    - DO NOT use Bash for commands producing >20 lines of output.
-    - DO NOT use Read for analysis (use execute_file). Read IS correct for files you intend to Edit.
-    - DO NOT use WebFetch (use mcp__plugin_context-mode_context-mode__ctx_fetch_and_index instead).
+    - DO NOT use Bash for commands producing >20 lines of output — use ctx_execute or ctx_batch_execute.
+    - DO NOT use Read for analysis — use ctx_execute_file. Read IS correct for files you intend to Edit.
+    - DO NOT use Grep for large searches — use ctx_execute(language: "shell", code: "..."). Only your printed summary enters the context.
+    - DO NOT use WebFetch — use mcp__plugin_context-mode_context-mode__ctx_fetch_and_index instead.
     - Bash is ONLY for git/mkdir/rm/mv/navigation.
   </forbidden_actions>
 

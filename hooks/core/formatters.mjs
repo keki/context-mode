@@ -26,12 +26,11 @@ export const formatters = {
         updatedInput,
       },
     }),
-    context: (additionalContext) => ({
-      hookSpecificOutput: {
-        hookEventName: "PreToolUse",
-        additionalContext,
-      },
-    }),
+    // On Claude Code, additionalContext persists permanently as <system-reminder>
+    // blocks in conversation history, compounding identical tips unbounded.
+    // The ROUTING_BLOCK injected at SessionStart already covers all guidance,
+    // so return null (passthrough) to avoid context waste.
+    context: () => null,
   },
 
   "gemini-cli": {
